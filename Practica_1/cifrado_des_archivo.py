@@ -1,3 +1,5 @@
+import base64
+
 from tkinter import *
 from tkinter import ttk
 from tkinter.filedialog import askopenfilename
@@ -55,7 +57,8 @@ class Aplicacion():
         # Cifrado del contenido
         llave = get_random_bytes(8)
         cifrador = DES.new(llave, DES.MODE_OFB)
-        contenido_cifrado = cifrador.encrypt(contenido.encode('utf-8'))
+        contenido_cifrado = cifrador.encrypt(bytes(contenido, 'utf-8'))
+        b64_cifrado = base64.b64encode(contenido_cifrado).decode('utf-8')
 
         # Escritura del archivo con la llave y el iv
         archivo_llave = open(nombre_archivo + '_llave.txt', 'wb')
@@ -63,8 +66,9 @@ class Aplicacion():
         archivo_llave.close()
 
         # Escritura del archivo con contenido cifrado
-        archivo_cifrado = open(nombre_archivo + '_C.txt', 'wb')
-        archivo_cifrado.write(contenido_cifrado)
+        archivo_cifrado = open(nombre_archivo + '_C.txt', 'w')
+        #archivo_cifrado.write(contenido_cifrado)
+        archivo_cifrado.write(b64_cifrado)
         archivo_cifrado.close()
 
         showinfo(
@@ -80,7 +84,7 @@ class Aplicacion():
         )
 
         # Lectura del contenido cifrado
-        archivo = open(dir_archivo, 'rb')
+        archivo = open(dir_archivo, 'r')
         nombre_archivo = archivo.name.split('.')[0]
         contenido = archivo.read()
         archivo.close()
@@ -96,22 +100,27 @@ class Aplicacion():
         llave, iv = archivo_llave.read().split(b"\n")
         archivo_llave.close()
 
-        try:
-            # Descifrado del contenido
-            cifrador = DES.new(llave, DES.MODE_OFB, iv=iv)
-            contenido_descifrado = cifrador.decrypt(contenido)
+        #try:
+        # Descifrado del contenido
+        cifrador = DES.new(llave, DES.MODE_OFB, iv=iv)
 
-            # Escritura del archivo con contenido cifrado
-            archivo_descifrado = open(nombre_archivo + '_D.txt', 'w')
-            archivo_descifrado.write(contenido_descifrado.decode('utf-8'))
-            archivo_descifrado.close()
+        unb64_cifrado = base64.b64decode(contenido)
 
-            showinfo(
-                'Archivo descifrado',
-                'Se ha descifrado el contenido del archivo y se ha almacenado en la ruta ' + nombre_archivo + '_D.txt'
-            )
-        except:
-            showerror('Error', 'No se pudo descifrar el archivo elegido.')
+        #contenido_descifrado = cifrador.decrypt(contenido)
+        contenido_descifrado = cifrador.decrypt(unb64_cifrado)
+
+        print(contenido_descifrado)
+        # Escritura del archivo con contenido cifrado
+        archivo_descifrado = open(nombre_archivo + '_D.txt', 'w')
+        archivo_descifrado.write(contenido_descifrado)
+        archivo_descifrado.close()
+
+        showinfo(
+            'Archivo descifrado',
+            'Se ha descifrado el contenido del archivo y se ha almacenado en la ruta ' + nombre_archivo + '_D.txt'
+        )
+        #except:
+        #    showerror('Error', 'No se pudo descifrar el archivo elegido.')
 
 #------------------------------MAIN------------------------------#
 # Iniciamos el objeto interfaz y lo ciclamos de manera infinita

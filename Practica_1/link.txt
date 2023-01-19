@@ -1,0 +1,1 @@
+https://programacion.net/articulo/codificar_y_decodificar_en_base64_con_python_1385
